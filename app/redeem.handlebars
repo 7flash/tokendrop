@@ -1,0 +1,35 @@
+<p>This card has address <a href="https://etherscan.io/address/{{address}}">{{address}}</a>.</p>
+{{^hasBalances}}
+    <p>Sorry! This card has no funds on it.</p>
+{{/hasBalances}}
+{{#hasBalances}}
+    <form>
+        <h3>Balances</h3>
+        <div id="tokenlist">
+            {{#sweepers}}
+                <div class="radio"><label>
+                    <input type="radio" class="balanceradio" name="balance" value="{{@index}}"> {{balance}} {{name}}
+                    {{#tokendrop}}<i class="glyphicon glyphicon-tint" data-toggle="modal" data-target="#tokenDropModal" style="cursor: pointer"></i>{{/tokendrop}}
+                </label></div>
+            {{/sweepers}}
+        </div>
+
+        <h3>Sweep to</h3>
+        <div id="targetlist">
+            {{#targets}}
+                <div class="radio"><label>
+                    <input type="radio" class="targetradio" name="target" value="{{address}}"> {{address}}
+                </label></div>
+            {{/targets}}
+            <div class="radio"><label>
+                <input type="radio" id="manualtarget" class="targetradio" name="target" value="">
+                <input type="text" id="targetinput" placeholder="foo.eth or 0x1234..."/>
+                <i class="glyphicon glyphicon-info-sign" data-toggle="modal" data-target="#aboutAccountsModal" style="cursor: pointer"></i>
+            </label></div>
+        </div>
+        <div class="form-group">
+            <button type="button" id="sweepbutton" class="btn btn-submit" disabled="disabled">Sweep</button>
+            <i class="glyphicon glyphicon-exclamation-sign" id="dropwarning" data-toggle="modal" data-target="#tokenDropModal"></i>
+        </div>
+    </div>
+{{/hasBalances}}

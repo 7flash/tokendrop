@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <title>Redeem a Tokendrop</title>
+
+        <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+          <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+          <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+        <![endif]-->
+        <script src="js/main.js"></script>
+    </head>
+    <body>
+        <section id="redeem" class="section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 col-md-offset-2 title">
+                        <h2>Create a token drop</h2>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8 col-md-offset-2">
+                        <form>
+                            <div class="form-group">
+                                <label for="addresses">Addresses</label>
+                                <textarea class="form-control" id="addresses" placeholder="0x1234..."></textarea>
+                            </div>
+                            <div id="tokenlist">Loading list of tokens...</div>
+                            <div class="form-group">
+                                <label for="numtokens">Tokens per address</label>
+                                <input type="number" id="numtokens" class="form-control" />
+                            </div>
+                            <button type="submit" class="btn btn-default" id="createbutton">Create</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="modal" id="aboutAccountsModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Ethereum Accounts</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Claiming the funds or tokens from your mnemonic requires you to have an Ethereum account. If you don't have one already, here are a few options to choose from:</a>
+
+                        <h3><a href="https://github.com/ethereum/mist/releases">Mist or Ethereum Wallet</a></h3>
+                        <p>The Ethereum Foundation develops the Mist browser, as well as the Ethereum Wallet application, for Windows, OS X and Linux. The Mist browser is a full fledged web browser with Ethereum support built in, while the Ethereum Wallet app is a cut down version with only wallet functionality. Both require downloaidng the Ethereum blockchain to your computer, which will take a couple of hours, but gives you an entirely decentralised connection to Ethereum, with no trusted third-parties.</p>
+
+                        <h3><a href="https://parity.io/">Parity</a></h3>
+                        <p>Parity is an Ethereum client and browser plugin for Windows, OS X and Linux, developed by the independent Parity Technologies. Like Mist, it's a full fledged Ethereum client that will require you to download a copy of the blockchain, and give you a fully independent connection to the Ethereum network.</p>
+
+                        <h3><a href="https://www.myetherwallet.com/">My Ether Wallet</a></h3>
+                        <p>My Ether Wallet is an Ethereum wallet built as a browser application. You can instantly create and download a wallet using your existing web browser, and use your wallet to send Ether, tokens, and engage in other interactions with the Ethereum blockchain. Unlike Mist and Parity, MEW runs entirely in your browser and doesn't require to download or synchronise anything; consequently it relies on services hosted by MEW and others for its connection.</p>
+
+                        <h3><a href="https://metamask.io/">Metamask</a></h3>
+                        <p>Metamask is a browser plugin for Chrome that adds support for Ethereum directly into your browser. Like My Ether Wallet, Metamask relies on servers maintained by a single organisation for its functionality.</p>
+
+                        <hr/>
+
+                        <p>Once you have chosen a solution and created a wallet, you will need to paste the address of your new wallet into the textbox in order to sweep your tokens or funds to it.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="etherWarningModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Sweeping Ether and Tokens</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Your mnemonic has both Ether and Tokens on it. A small amount of Ether is required to pay for transactions that transfer tokens - so if you sweep your Ether first, you will not be able to sweep the tokens!</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="tokenDropModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">'Token drops'</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>These tokens are part of a 'token drop'. They can be swept without needing any ether on the card itself, but you must use a web3-enabled browser to do so.</p>
+
+                        <p>Here's a few common choices for web3-enabled browsing:</p>
+
+                        <h3><a href="https://github.com/ethereum/mist/releases">Mist</a></h3>
+                        <p>The Ethereum Foundation develops the Mist browser for Windows, OS X and Linux. The Mist browser is a full fledged web browser with Ethereum support built in. It requires downloaidng the Ethereum blockchain to your computer, which will take a couple of hours, but gives you an entirely decentralised connection to Ethereum, with no trusted third-parties.</p>
+
+                        <h3><a href="https://parity.io/">Parity</a></h3>
+                        <p>Parity is an Ethereum client and browser plugin for Windows, OS X and Linux, developed by the independent Parity Technologies. Like Mist, it's a full fledged Ethereum client that will require you to download a copy of the blockchain, and give you a fully independent connection to the Ethereum network.</p>
+
+                        <h3><a href="https://metamask.io/">Metamask</a></h3>
+                        <p>Metamask is a browser plugin for Chrome that adds support for Ethereum directly into your browser. Like My Ether Wallet, Metamask relies on servers maintained by a single organisation for its functionality.</p>                
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="txSentModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">Transaction sent</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p>Transaction sent!</p>
+                        <p>Your transaction ID is <span id="txid"></span>.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="" id="txidlink" role="button" class="btn btn-info">View on Etherscan</a>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

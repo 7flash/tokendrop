@@ -1,0 +1,11 @@
+{{#tokens}}
+    <div class="radio">
+        <label>
+            <input type="radio" name="tokenaddr" class="tokenaddr" value="{{address}}">
+            {{balance}} {{symbol}}
+        </label>
+    </div>
+{{/tokens}}
+{{^tokens}}
+    <p>You don't have any tokens!</p>
+{{/tokens}}
