@@ -37,6 +37,6 @@ Without token drops:
 
  - 46k gas per address to transfer tokens
  - 46k gas per address to redeem the tokens
- - 21k gas to send the 'gas money'
- - **Total: 113k gas per address, all paid by sender**
+ - 24k gas to send the 'gas money'
+ - **Total: 116k gas per address, all paid by sender**
  - 2 transactions per address to fund
