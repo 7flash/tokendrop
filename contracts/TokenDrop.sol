@@ -38,10 +38,10 @@ contract TokenDrop {
         uint count;
     }
 
-    Drop[] drops;
+    Drop[] private drops;
 
     // mapping(owner => drop indexes)
-    mapping(address => uint[]) userDrops;
+    mapping(address => uint[]) private userDrops;
 
     /**
      * @dev Credits tokens to a list of accounts. The caller must first
@@ -51,7 +51,7 @@ contract TokenDrop {
      * @param addresses The list of addresses to credit tokens to.
      * @param quantity The number of tokens to issue to each address.
      */
-    function deposit(IERC20Token token, address[] addresses, uint quantity) {
+    function deposit(IERC20Token token, address[] addresses, uint quantity) public {
         // Transfer the required number of tokens to us
         assert(token.transferFrom(msg.sender, this, quantity * addresses.length));
 
@@ -69,7 +69,7 @@ contract TokenDrop {
      * @param owner The owner account to query.
      * @return The number of drops belonging to the queried account.
      */
-    function dropCount(address owner) constant returns(uint) {
+    function dropCount(address owner) public constant returns(uint) {
         return userDrops[owner].length;
     }
 
@@ -82,7 +82,7 @@ contract TokenDrop {
      *         id:       The drop ID
      *         quantity: The number of tokens
      */
-    function getDrop(address owner, uint idx) constant returns(address token, uint dropId, uint quantity) {
+    function getDrop(address owner, uint idx) public constant returns(address token, uint dropId, uint quantity) {
         dropId = userDrops[owner][idx];
         var drop = drops[dropId];
         (token, quantity) = (drop.token, drop.quantity);
@@ -94,7 +94,7 @@ contract TokenDrop {
      * @param dropId The dropId of the drop being transferred.
      * @return The hash the account owner should sign to authorise the transfer.
      */
-    function computeSignaturehash(address recipient, uint dropId) constant returns(bytes32) {
+    function computeSignaturehash(address recipient, uint dropId) public constant returns(bytes32) {
         return sha3(address(this), recipient, dropId);
     }
 
@@ -131,7 +131,7 @@ contract TokenDrop {
      * @param v (r, s) The ECDSA signature of (tokendrop_address, token_address, id, 
      *        recipient) by an account that owns tokens for the relevant drop.
      */
-    function redeemFor(address recipient, uint dropId, uint idx, uint8 v, bytes32 r, bytes32 s) {
+    function redeemFor(address recipient, uint dropId, uint idx, uint8 v, bytes32 r, bytes32 s) public {
         var hash = computeSignaturehash(recipient, dropId);
         var owner = ecrecover(hash, v, r, s);
         doRedeem(owner, recipient, dropId, idx);
@@ -144,7 +144,7 @@ contract TokenDrop {
      * @param v (r, s) The ECDSA signature from a valid account address authorising
      *          the transfer.
      */
-    function redeem(uint dropId, uint idx, uint8 v, bytes32 r, bytes32 s) {
+    function redeem(uint dropId, uint idx, uint8 v, bytes32 r, bytes32 s) public {
         redeemFor(msg.sender, dropId, idx, v, r, s);
     }
     
@@ -154,7 +154,7 @@ contract TokenDrop {
      * @param dropId The drop ID being redeemed.
      * @param idx The index of the drop being redeemed.
     */
-    function withdraw(uint dropId, uint idx) {
+    function withdraw(uint dropId, uint idx) public {
         doRedeem(msg.sender, msg.sender, dropId, idx);
     }
 }

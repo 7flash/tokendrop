@@ -2,7 +2,7 @@
 
 The problem: Handing out tokens is problematic, because the receiving account also needs enough ether to send a transaction transferring the tokens to the user's account.
 
-The solution: Send the tokens using a 'token drop'. The recipient of the tokens can claim them from the account by signing a message authorising transfer of the tokens to a different account.
+The solution: Send the tokens using a 'token drop'. The recipient of the tokens can claim them from the account by signing a message authorising transfer of the tokens to a different account. Using this method, gas costs for the sender can be reduced by more than half.
 
 This repository implements both the token drop contract and a straightforward DApp for interfacing with it.
 
