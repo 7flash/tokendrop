@@ -2,7 +2,7 @@ var ERC20TestToken = artifacts.require("./ERC20TestToken.sol");
 var TokenDrop = artifacts.require("./TokenDrop.sol");
 
 // rookie people despair fury shrimp kangaroo creek voice priority lady pigeon educate
-var testAddress = '0xeB96E6C560ed480901a10196E06Ea6f9B458e19C';
+var testAddress = '0x0904Dac3347eA47d208F3Fd67402D039a3b99859';
 
 module.exports = function(deployer, network, accounts) {
     deployer.deploy(TokenDrop).then(function() {
@@ -16,7 +16,7 @@ module.exports = function(deployer, network, accounts) {
                 }).then(function() {
                     return token.approve(TokenDrop.address, 1e18, {from: accounts[0]});
                 }).then(function() {
-                    return web3.eth.sendTransaction({from: accounts[0], to: testAddress, value: 1e18});
+                    return web3.eth.sendTransaction({from: accounts[0], to: testAddress, value: 1e19});
                 }).then(function() {
                     return TokenDrop.deployed();
                 }).then(function(td) {

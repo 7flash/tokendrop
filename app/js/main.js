@@ -40,14 +40,17 @@ function signAndSendTransaction(wallet, txParams) {
     });
 }
 
-function signDrop(wallet, token, recipient) {
-    var data = tokenDrop.address + token.slice(2) + recipient.slice(2);
-    var sig = ethUtil.ecsign(ethUtil.sha3(data), wallet.getPrivateKey());
-    return {
-        v: sig.v,
-        r: ethUtil.bufferToHex(sig.r),
-        s: ethUtil.bufferToHex(sig.s)
-    }
+function signDrop(wallet, recipient, dropId) {
+    return TokenDrop.deployed().then(function(td) {
+        return td.computeSignaturehash(recipient, dropId).then(function(hash) {
+            var sig = ethUtil.ecsign(ethUtil.toBuffer(hash), wallet.getPrivateKey());
+            return {
+                v: sig.v,
+                r: ethUtil.bufferToHex(sig.r),
+                s: ethUtil.bufferToHex(sig.s)
+            }
+        });
+    });
 }
 
 function getEtherSweeper(address) {
@@ -109,31 +112,39 @@ function getTokenSweepers(address) {
 }
 
 function getTokendropSweepers(address) {
-    return Promise.map(tokens, function(token) {
-        return tokenDrop.balances(token.address, address);
-    }).then(function(balances) {
-        var sweepers = [];
-        for(var i = 0; i < tokens.length; i++) {
-            var token = tokens[i];
-            var balance = balances[i];
-            if(balance > 0) {
-                sweepers.push({
-                    balance: balance / Math.pow(10, token.decimal),
-                    name: token.symbol,
-                    type: 'tokendrop',
-                    tokendrop: true,
-                    sweep: function(wallet, targetAddress) {
-                        return web3.eth.getGasPriceAsync().then(function(gasPrice) {
-                            var sig = signDrop(wallet, token.address, targetAddress)
-                            return tokenDrop.redeemFor.estimateGas(token.address, targetAddress, sig.v, sig.r, sig.s).then(function(gasLimit) {
-                                return tokenDrop.redeemFor(token.address, targetAddress, sig.v, sig.r, sig.s, {from: web3.eth.accounts[0], gasPrice: gasPrice, gasLimit: gasLimit});
-                            });
-                        });
-                    }
+    return tokenDrop.dropCount(address).then(function(count) {
+        return Promise.map(_.range(count), function(idx) {
+            return tokenDrop.getDrop(address, idx).then(function(dropinfo) {
+                var dropId = dropinfo[1];
+                var quantity = dropinfo[2];
+                return Token.at(dropinfo[0]).then(function(token) {
+                    return Promise.all([
+                        token.symbol(),
+                        token.decimals()
+                    ]).then(function(tokeninfo) {
+                        return {
+                            balance: quantity / Math.pow(10, tokeninfo[1]),
+                            name: tokeninfo[0],
+                            type: 'tokendrop',
+                            tokendrop: true,
+                            sweep: function(wallet, targetAddress) {
+                                return web3.eth.getGasPriceAsync().then(function(gasPrice) {
+                                    return signDrop(wallet, targetAddress, dropId).then(function(sig) {
+                                        return tokenDrop.redeemFor.estimateGas(targetAddress, dropId, idx, sig.v, sig.r, sig.s).then(function(gasLimit) {
+                                            return tokenDrop.redeemFor(targetAddress, dropId, idx, sig.v, sig.r, sig.s, {
+                                                from: web3.eth.accounts[0],
+                                                gasPrice: gasPrice,
+                                                gasLimit: gasLimit
+                                            });
+                                        });
+                                    });
+                                });
+                            }
+                        };
+                    });
                 });
-            }
-        }
-        return sweepers;
+            });
+        });
     });
 }
 
@@ -200,12 +211,12 @@ window.App = {
             $("#tokenlist").html(rendered);
 
             function getToken() {
-                var tokenAddr = $(".tokenaddr:checked").val();
-                if(tokenAddr !== "" && tokenAddr !== undefined) {
-                    return Promise.resolve(tokens[tokenAddr]);
+                var i = $(".tokenidx:checked").val();
+                if(i !== "" && i !== undefined) {
+                    return Promise.resolve(tokenBalances[i]);
                 }
                 
-                tokenAddr = $("#tokeninput").val();
+                var tokenAddr = $("#tokeninput").val();
                 if(!addrRegex.test(tokenAddr)) {
                     return Promise.reject(new Error("Invalid token address"));
                 }
@@ -244,32 +255,55 @@ window.App = {
                     enabled = false;
                 }
 
-                getToken().then(function(token) {
-                    return token.contract.balanceOf(address).then(function(balance) {
-                        if(balance / Math.pow(10, token.decimal) < parseFloat($("#numtokens").val()) * addresses.length) {
-                            enabled = false;
-                        }
-                    });
-                }).catch(function() {
+                try {
+                    var numTokens = parseFloat($("#numtokens").val())
+                    if(numTokens == 0.0 || Number.isNaN(numTokens))
+                        enabled = false;
+                } catch(e) {
                     enabled = false;
-                }).then(function() {
-                    if(enabled) {
-                        $("#createbutton").removeAttr("disabled");
-                    } else {
-                        $("#createbutton").attr("disabled", "disabled");
-                    }
-                    $("#createbutton").html("Create (" + (1 + Math.ceil(addresses.length / 100)) + " transactions)");
-                });
+                }
+
+                if(enabled) {
+                    getToken().then(function(token) {
+                        return token.contract.balanceOf(address).then(function(balance) {
+                            if(balance / Math.pow(10, token.decimal) < parseFloat($("#numtokens").val()) * addresses.length) {
+                                enabled = false;
+                            }
+                        });
+                    }).catch(function(err) {
+                        console.log(err);
+                        enabled = false;
+                    }).then(function() {
+                        if(enabled) {
+                            $("#createbutton").removeAttr("disabled");
+                        } else {
+                            $("#createbutton").attr("disabled", "disabled");
+                        }
+                        $("#createbutton").html("Create (" + (1 + Math.ceil(addresses.length / 100)) + " transactions)");
+                    });
+                } else {
+                    $("#createbutton").attr("disabled", "disabled");
+                }
             }
 
-            $(".tokenaddr").change(updateButton);
+            $(".tokenidx").change(updateButton);
             $("#tokenaddrinput").focus(function() { $("#manualtokenaddr").prop("checked", true); });
             $("#addresses, #numtokens").keyup(updateButton);
 
             $("#createbutton").click(function() {
                 var dropAddresses = getDropAddresses();
+                var numTokens = web3.toBigNumber($("#numtokens").val()).times(web3.toBigNumber(10).toPower(token.decimal)).truncated();
                 getToken().then(function(token) {
-                    
+                    TokenDrop.deployed().then(function(td) {
+                        token.contract.approve(td.address, dropAddresses.length * numTokens, {from: web3.eth.accounts[0]}).then(function(result) {
+                            console.log(result);
+                            _.each(_.groupBy(dropAddresses, function(x, i) { return Math.floor(i / 100); }), function(batch) {
+                                td.deposit(token.address, batch, numTokens, {from: web3.eth.accounts[0]}).then(function(result) {
+                                    console.log(result);
+                                });
+                            });
+                        });
+                    });
                 });
             });
         });
@@ -325,10 +359,10 @@ window.App = {
         var sweeper = App.sweepers[parseInt($(".balanceradio:checked").val())];
         App.getTargetAddr().then(function(targetAddress) {
             var sent = sweeper.sweep(App.wallet, targetAddress);
-            sent.then(function(txid) {
+            sent.then(function(receipt) {
                 App.buildRedemptionForm(App.wallet);
-                $("#txid").html(txid);
-                $("#txidlink").attr("href", "https://etherscan.io/tx/" + txid);
+                $("#txid").html(receipt.tx);
+                $("#txidlink").attr("href", "https://etherscan.io/tx/" + receipt.tx);
                 $("#txSentModal").modal({keyboard: true});
             });
         });
