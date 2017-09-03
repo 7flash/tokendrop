@@ -53,7 +53,7 @@ contract TokenDrop {
      */
     function deposit(IERC20Token token, address[] addresses, uint quantity) public {
         // Transfer the required number of tokens to us
-        assert(token.transferFrom(msg.sender, this, quantity * addresses.length));
+        require(token.transferFrom(msg.sender, this, quantity * addresses.length));
 
         var dropId = drops.push(Drop(token, quantity, addresses.length)) - 1;
 
@@ -102,7 +102,7 @@ contract TokenDrop {
         var drop = drops[dropId];
         var dropList = userDrops[owner];
         // Check that the user actually has this drop in the specified position
-        assert(dropList[idx] == dropId);
+        require(dropList[idx] == dropId);
 
         // Delete the drop from the user's list, moving an element to fill the slot
         // if appropriate.
