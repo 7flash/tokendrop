@@ -18,14 +18,14 @@ import "./IERC20Token.sol";
  *  3. Call TokenDrop.deposit() with the list of account addresses,
  *     the ERC20 token address, and the number of tokens to allocate to each address.
  * 
- * Redeeming:
- *  1. Find the `Creation` event(s) for the account holder, and record their `token`
- *     and `id` fields.
- *  2. Have the user sign a message consisting of
- *     `(token_drop_address, token_address, id, recipient)`.
+ * Redemption:
+ *  1. Call `TokenDrop.dropCount(account)` to determine how many drops the account has,
+ *     and fetch their data with `TokenDrop.getDrop(account, idx)`.
+ *  2. Have the owning account sign a message consisting of
+ *     `(token_drop_address, recipient, dropId)`.
  *  3. From any account, call `TokenDrop.redeemFor` or
- *     `TokenDrop.redeem` with the ERC20 token address, the id, the recipient
- *     (optional), the drop ID, and the signature from step 1.
+ *     `TokenDrop.redeem` with the drop ID, the index, the recipient
+ *     (optional), and the signature from step 1.
  */
 contract TokenDrop {
     event Creation(address indexed owner, address indexed token, uint quantity);
